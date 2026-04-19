@@ -5,23 +5,24 @@ import SecBtn from "./components/second_btn";
 
 export default function App() {
   const [secKey, setSecKey] = useState(0);
+  const [muted,  setMuted]  = useState(false);
 
-  const resetAll = () => setSecKey(k => k + 1);
+  const resetAll = () => {
+    setMuted(false);
+    setSecKey(k => k + 1);
+  };
 
   return (
     <div style={{
       backgroundImage: `url(${background})`,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  width: "1440px",
-  height: "1024px",
-  position: "absolute", // Change to absolute
-  top: "50%",           // Center the 1440x1024 block
-  left: "50%",          // Center the 1440x1024 block
-  transform: "translate(-50%, -50%)", // Center the 1440x1024 block
-  overflow: "hidden",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      width: "1440px",
+      height: "1024px",
+      position: "relative",
+      overflow: "hidden",
     }}>
-      <SecBtn key={secKey} onReset={resetAll} />
+      <SecBtn key={secKey} onReset={resetAll} onMute={() => setMuted(true)} />
 
       <div style={{
         position: "absolute",
@@ -30,7 +31,7 @@ export default function App() {
         transform: "translate(-50%, -50%)",
         zIndex: 100,
       }}>
-        <MainBtn onClicked={resetAll} />
+        <MainBtn onClicked={resetAll} muted={muted} />
       </div>
     </div>
   );

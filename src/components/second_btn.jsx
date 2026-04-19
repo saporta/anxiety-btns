@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 
-// 1. Update the order of positions
 const positions = ["bottom-left", "top-right", "top-left", "bottom-right"];
 
-// 2. Ensure the opacity increments correctly based on the new order
 const redOpacity = {
   "bottom-left":   0,
   "top-right":     0.125,
@@ -12,7 +10,6 @@ const redOpacity = {
   "bottom-right":  0.375,
 };
 
-// 3. Ensure your positionStyle has all the necessary keys
 const positionStyle = {
   "bottom-left":   { bottom: "60px",  left: "120px",  right: "auto",  top: "auto",    transform: "none" },
   "top-right":     { top:    "60px",  right: "120px", left: "auto",   bottom: "auto", transform: "none" },
@@ -22,7 +19,7 @@ const positionStyle = {
 
 const stateText = { default: "DELETE", hover: "DELETE?", pressing: "DELETE??", clicked: "..." };
 
-export default function RunawayBtn({ onReset }) {
+export default function RunawayBtn({ onReset, onMute }) {
   const [posIndex,   setPosIndex]   = useState(0);
   const [btnState,   setBtnState]   = useState("default");
   const [opacity,    setOpacity]    = useState(0);
@@ -52,24 +49,20 @@ export default function RunawayBtn({ onReset }) {
   const triggerBlink = () => {
     setBlinkKey(k => k + 1);
     setBlinking(true);
-    setTimeout(() => setBlinking(false), 300); // faster — 300ms
+    setTimeout(() => setBlinking(false), 300);
   };
 
   const fullReset = () => {
-  // 1. Reset parent state immediately to clear MainBtn
-  if (onReset) onReset();
-
-  // 2. Reset internal states immediately
-  setPosIndex(0);
-  setBtnState("default");
-  setOpacity(0);
-  opacityRef.current = 0;
-
-  // 3. Keep eyelids closed for a tiny flicker-buffer, then open them
-  setTimeout(() => {
-    setFinalBlink(false);
-  }, 100); 
-};
+    clearTimeout(resetTimer.current); // cancel auto-timer if clicked early
+    if (onReset) onReset();
+    setPosIndex(0);
+    setBtnState("default");
+    setOpacity(0);
+    opacityRef.current = 0;
+    setTimeout(() => {
+      setFinalBlink(false);
+    }, 100);
+  };
 
   const pos     = positions[posIndex];
   const isFinal = pos === "bottom-right";
@@ -89,23 +82,22 @@ export default function RunawayBtn({ onReset }) {
   const handleFinalDown  = () => { if (btnState !== "clicked") setBtnState("pressing"); };
   const handleFinalUp    = () => { if (btnState !== "clicked") setBtnState("hover");    };
   const handleFinalClick = () => {
-  setBtnState(s => {
-    if (s === "clicked") {
-      setFinalBlink(false);
-      clearTimeout(resetTimer.current);
-      return "default";
-    } else {
-      setFinalBlink(true);
-      window.dispatchEvent(new Event("stop-ambient-sound"));
-      resetTimer.current = setTimeout(() => {
-        fullReset();
-      }, 600 + 1000000000);
-      return "clicked";
-    }
-  });
-};
+    setBtnState(s => {
+      if (s === "clicked") {
+        setFinalBlink(false);
+        clearTimeout(resetTimer.current);
+        return "default";
+      } else {
+        setFinalBlink(true);
+        if (onMute) onMute();   // ← tell App to mute MainBtn
+        resetTimer.current = setTimeout(() => {
+          fullReset();
+        }, 600 + 5000);
+        return "clicked";
+      }
+    });
+  };
 
-  // cleanup on unmount
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
   const label = isFinal ? stateText[btnState] : "DON'T DELETE";
@@ -181,9 +173,12 @@ export default function RunawayBtn({ onReset }) {
         document.body
       )}
 
-      {/* final clicked — close and stay, then open on reset */}
+      {/* final clicked — close and stay, click anywhere to reset */}
       {finalBlink && createPortal(
-        <div>
+        <div
+          onClick={fullReset}
+          style={{ position: "fixed", inset: 0, zIndex: 99998, cursor: "pointer" }}
+        >
           <div style={{ ...eyelidBase(true),  animation: "eyelid-top-stay    0.6s ease-in forwards" }} />
           <div style={{ ...eyelidBase(false), animation: "eyelid-bottom-stay 0.6s ease-in forwards" }} />
         </div>,
