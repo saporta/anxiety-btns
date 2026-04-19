@@ -1,1 +1,1 @@
-# Second small project for UI course at Bezalel :)
+## Second small project for UI course at Bezalel :)
