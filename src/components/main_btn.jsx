@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import shadow from "../assets/shadow.png";
-import ambientSound from "../assets/crowd.mp3";
+import ambientSound from "../assets/anxiety.m4a";
 
 const bgWidth = { default: "0px", hover: "530px", pressing: "1061px", clicked: "200vmax" };
 const bgHeight = { default: "0px", hover: "345px", pressing: "690px", clicked: "200vmax" };
 
-const stateVolume = { default: 1.0, hover: 0.6, pressing: 0.3, clicked: 0.0 };
+const stateVolume = { default: 1.0, hover: 1.0, pressing: 0.5, clicked: 0.0 };
 
 const stateColor = {
     default: "#ffffff",
